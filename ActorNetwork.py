@@ -41,9 +41,6 @@ class ActorNetwork(object):
 
     def create_actor_network(self, name, state_size, action_dim):
         with tf.variable_scope(name):
-            V = merge([Steering,Acceleration,Brake],mode='concat')
-            model = Model(input=S,output=V)
-
             input_state = tf.placeholder(tf.float32, shape=[state_size])
 
             wf1 = tf.get_variable(name='wf1', shape=[state_size, HIDDEN1_UNIT])
