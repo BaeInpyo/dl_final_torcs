@@ -47,10 +47,12 @@ class DriverAgent:
 #        else:
 #            print("Could not find old network weights")
 
+    # Train code
     def train(self,state,action,reward,next_state,done):
-        # train code
+        # Add information to the replay memory
         self.memory.add(state, action, reward, next_state, done)
 
+        # Get batch from the replay memory
         batch = self.memory.getBatch(BATCH_SIZE)
         states = np.asarray([e[0] for e in batch])
         actions = np.asarray([e[1] for e in batch])
@@ -59,14 +61,17 @@ class DriverAgent:
         dones = np.asarray([e[4] for e in batch])
         y_t = [0]*len(batch)
 
+        # Get target Q value of the critic network
         target_Q = self.critic.target_predict([new_states, self.actor.target_predict(new_states)])
 
+        # Calculate answer(???) < I cannot rememeber name
         for i in range(len(batch)):
             if dones[k]:
                 y_t[i] = rewards[i]
             else:
                 y_t[i] = rewards[i] + GAMMA*target_Q[i]
 
+        # Calculate loss value and gradient for each network, and train both
         loss += self.critic.train([states, actions], y_t)
         a_for_grad = self.actor.predict(states)
         grads = self.critic.gradients(states, a_for_grad)
