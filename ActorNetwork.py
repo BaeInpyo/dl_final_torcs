@@ -1,11 +1,12 @@
 import tensorflow as tf
 import numpy as np
+import math
 
 HIDDEN1_UNIT = 300
 HIDDEN2_UNIT = 600
 
 class ActorNetwork(object):
-    def __init__(self, sess, stat_size, action_size, BATCH_SIZE, TAU, LEARNING_RATE):
+    def __init__(self, sess, state_size, action_size, BATCH_SIZE, TAU, LEARNING_RATE):
         self.sess = sess
         self.BATCH_SIZE = BATCH_SIZE
         self.TAU = TAU
@@ -27,8 +28,8 @@ class ActorNetwork(object):
         self.pred_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='pred')
         self.target_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target')
         for pred_var, target_var in zip(self.pred_vars, self.target_vars):
-            self.copy_op.append(target_vars.assign(
-                TAU*pred_var.value() + (1-TAU)*target_val.value())
+            self.copy_op.append(target_var.assign(
+                TAU*pred_var.value() + (1-TAU)*target_var.value()))
 
     def train(self, input_state, action_grads):
         self.sess.run(self.optimize, feed_dict={
@@ -41,7 +42,7 @@ class ActorNetwork(object):
 
     def create_actor_network(self, name, state_size, action_dim):
         with tf.variable_scope(name):
-            input_state = tf.placeholder(tf.float32, shape=[state_size])
+            input_state = tf.placeholder(tf.float32, shape=[None, state_size])
 
             wf1 = tf.get_variable(name='wf1', shape=[state_size, HIDDEN1_UNIT])
             wf2 = tf.get_variable(name='wf2', shape=[HIDDEN1_UNIT, HIDDEN2_UNIT])
@@ -49,11 +50,11 @@ class ActorNetwork(object):
             wac = tf.get_variable(name='wac', shape=[HIDDEN2_UNIT, 1])
             wbr = tf.get_variable(name='wbr', shape=[HIDDEN2_UNIT, 1])
 
-            bf1 = tf.constant(0.0, shape=[HIDDEN1_UNIT])
-            bf2 = tf.constant(0.0, shape=[HIDDEN2_UNIT])
-            bst = tf.constant(0.0, shape=[1])
-            bac = tf.constant(0.0, shape=[1])
-            bbr = tf.constant(0.0, shape=[1])
+            bf1 = tf.constant(value=0.0, name='bf1', shape=[HIDDEN1_UNIT])
+            bf2 = tf.constant(value=0.0, name='bf2', shape=[HIDDEN2_UNIT])
+            bst = tf.constant(value=0.0, name='bst', shape=[1])
+            bac = tf.constant(value=0.0, name='bac', shape=[1])
+            bbr = tf.constant(value=0.0, name='bbr', shape=[1])
 
 
             fc1 = tf.nn.relu(tf.add(tf.matmul(input_state, wf1), bf1))
@@ -65,7 +66,8 @@ class ActorNetwork(object):
 
             logits = tf.concat([steering, accel, brake], 1)
             
-            params = [wf1, bf1, wf2, bf2, wst, bst, wac, bac, wbr, bbr]
+            #params = [wf1, bf1, wf2, bf2, wst, bst, wac, bac, wbr, bbr]
+            params = [wf1, wf2, wst, wac, wbr]
             
             return logits, params, input_state
 

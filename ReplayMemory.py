@@ -3,7 +3,7 @@ import random
 
 class ReplayMemory(object):
     def __init__(self, memory_size):
-        self.buffer_size = buffer_size
+        self.memory_size = memory_size
         self.num_experiences = 0
         self.buffer = deque()
 
@@ -15,11 +15,11 @@ class ReplayMemory(object):
             return random.sample(self.buffer, batch_size)
 
     def size(self):
-        return self.buffer_size
+        return self.memory_size
 
     def add(self, state, action, reward, new_state, done):
         experience = (state, action, reward, new_state, done)
-        if self.num_experiences < self.buffer_size:
+        if self.num_experiences < self.memory_size:
             self.buffer.append(experience)
             self.num_experiences += 1
         else:

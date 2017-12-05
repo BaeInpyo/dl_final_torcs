@@ -36,8 +36,8 @@ class DriverAgent:
         self.sess = tf.Session(config=config)
 
         # Actor & Critic Network
-        self.actor = ActorNetwork(sess, state_dim, action_dim, BATCH_SIZE, TAU, LRA)
-        self.critic = CriticNetwork(sess, state_dim, action_dim, BATCH_SIZE, TAU, LRA)
+        self.actor = ActorNetwork(self.sess, state_dim, action_dim, BATCH_SIZE, TAU, LRA)
+        self.critic = CriticNetwork(self.sess, state_dim, action_dim, BATCH_SIZE, TAU, LRA)
         
         # Replay Memory
         self.memory = ReplayMemory(MEMORY_SIZE)
