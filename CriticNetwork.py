@@ -21,7 +21,7 @@ class CriticNetwork(object):
         self.output, self.action, self.state = self.create_critic_network('pred_critic', state_size, action_size)  
         self.target_output, self.target_action, self.target_state = self.create_critic_network('target_critic', state_size, action_size)  
         self.action_grads = tf.gradients(self.output, self.action)  #GRADIENTS for policy update
-        self.sess.run(tf.initialize_all_variables())
+        self.sess.run(tf.global_variables_initializer())
 
         self.copy_op = []
         self.pred_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='pred_critic')
