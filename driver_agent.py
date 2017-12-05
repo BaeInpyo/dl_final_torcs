@@ -59,7 +59,7 @@ class DriverAgent:
         dones = np.asarray([e[4] for e in batch])
         y_t = [0]*len(batch)
 
-        target_Q = critic.target_predict([new_states, actor.target_predict(new_states)])
+        target_Q = self.critic.target_predict([new_states, self.actor.target_predict(new_states)])
 
         for i in range(len(batch)):
             if dones[k]:
@@ -74,8 +74,6 @@ class DriverAgent:
         self.actor.target_train()
         self.critic.target_train()
 
-        pass
-            
     def saveNetwork(self):
         # save your own network
         pass
