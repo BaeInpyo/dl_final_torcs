@@ -7,7 +7,6 @@ import math
 from ReplayMemory import ReplayMemory
 from ActorNetwork import ActorNetwork
 from CriticNetwork import CriticNetwork
-from my_config import *
 
 # If you want, add hyperparameters
 MEMORY_SIZE = 100000
@@ -50,6 +49,31 @@ class DriverAgent:
 
     def train(self,state,action,reward,next_state,done):
         # train code
+        self.memory.add(state, action, reward, next_state, done)
+
+        batch = self.memory.getBatch(BATCH_SIZE)
+        states = np.asarray([e[0] for e in batch])
+        actions = np.asarray([e[1] for e in batch])
+        rewards = np.asarray([e[2] for e in batch])
+        new_states = np.asarray([e[3] for e in batch])
+        dones = np.asarray([e[4] for e in batch])
+        y_t = [0]*len(batch)
+
+        target_Q = critic.target_predict([new_states, actor.target_predict(new_states)])
+
+        for i in range(len(batch)):
+            if dones[k]:
+                y_t[i] = rewards[i]
+            else:
+                y_t[i] = rewards[i] + GAMMA*target_Q[i]
+
+        loss += self.critic.train([states, actions], y_t)
+        a_for_grad = self.actor.predict(states)
+        grads = self.critic.gradients(states, a_for_grad)
+        self.actor.train(states, grads)
+        self.actor.target_train()
+        self.critic.target_train()
+
         pass
             
     def saveNetwork(self):
@@ -76,11 +100,11 @@ class DriverAgent:
         action_pre = actor.predict(state)
         
         # NOISE: eps * (theta * (mu - x) + sigma * rand)
-        noise[0] = is_training * max(epsilon, MIN_EPSILON) * \
+        noise[0] = max(epsilon, MIN_EPSILON) * \
                 0.6*(0.0-action_pre[0][0]) + 0.30*np.random.randn(1) 
-        noise[1] = is_training * max(epsilon, MIN_EPSILON) * \
+        noise[1] = max(epsilon, MIN_EPSILON) * \
                 1.0*(0.5-action_pre[0][1]) + 0.10*np.random.randn(1) 
-        noise[2] = is_training * max(epsilon, MIN_EPSILON) * \
+        noise[2] = max(epsilon, MIN_EPSILON) * \
                 1.0*(-0.1-action_pre[0][2]) + 0.05*np.random.randn(1) 
 
         # ACTION: with noise 
