@@ -8,6 +8,8 @@ from ReplayMemory import ReplayMemory
 from ActorNetwork import ActorNetwork
 from CriticNetwork import CriticNetwork
 
+import os
+
 # If you want, add hyperparameters
 MEMORY_SIZE = 100000
 BATCH_SIZE  = 32
@@ -15,6 +17,8 @@ GAMMA       = 0.99
 TAU         = 0.001
 LRA         = 0.0001
 LRC         = 0.001
+ckp_dir     = 'torcs'
+ckp_name    = 'trained'
 
 class DriverAgent:
     def __init__(self, env_name, state_dim,action_dim):
@@ -39,13 +43,13 @@ class DriverAgent:
         self.memory = ReplayMemory(MEMORY_SIZE)
 
         # loading networks. modify as you want 
-#        self.saver = tf.train.Saver()
-#        checkpoint = tf.train.get_checkpoint_state("path_to_save/")
-#        if checkpoint and checkpoint.model_checkpoint_path:
-#            self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
-#            print("Successfully loaded:", checkpoint.model_checkpoint_path)
-#        else:
-#            print("Could not find old network weights")
+        self.saver = tf.train.Saver()
+        checkpoint = tf.train.get_checkpoint_state(ckp_dir + '/' + ckp_name)
+        if checkpoint and checkpoint.model_checkpoint_path:
+            self.saver.restore(self.sess, checkpoint.model_checkpoint_path)
+            print("Successfully loaded:", checkpoint.model_checkpoint_path)
+        else:
+            print("Could not find old network weights")
 
     # Train code
     def train(self,state,action,reward,next_state,done):
@@ -79,8 +83,11 @@ class DriverAgent:
         self.actor.target_train()
         self.critic.target_train()
 
+    # save your own network
     def saveNetwork(self):
-        # save your own network
+        if not os.path.exists(ckp_dir):
+            os.mkdir(ckp_dir)
+        self.saver.save(self.sess, os.path.join(ckp_dir, ckp_name))
         pass
 
     def action(self,state):
