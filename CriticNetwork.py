@@ -3,8 +3,8 @@ import numpy as np
 import math
 
 ## for dgx setting
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = '4,5'
+#import os
+#os.environ["CUDA_VISIBLE_DEVICES"] = '4,5'
 
 HIDDEN1_UNIT = 300
 HIDDEN2_UNIT = 600
