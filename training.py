@@ -24,7 +24,7 @@ print( port )
 def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means simply Run
 
     action_dim = 3  #Steering/Acceleration/Brake
-    state_dim = 37  #of sensors input
+    state_dim = 29  #of sensors input
     env_name = 'Torcs_Env'
     agent = DriverAgent(env_name, state_dim, action_dim)
 
@@ -69,7 +69,7 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
         print("Episode : " + str(i) + ' Early Stopping: ' + str(early_stop) +  ' Epsilon: ' + str(eps_early) +  ' RN: ' + str(random_number)  )
 
         #Initializing the first state
-        s_t = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos, ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+        s_t = np.hstack((ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
         print(len(s_t))
         #Counting the total reward and total steps in the current episode
         total_reward = 0.
@@ -87,7 +87,8 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
                 
             ob, r_t, done, info = env.step(a_t,early_stop)
             #ob, r_t, done, info = env.step(a_t[0])
-            s_t1 = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos,ob.track, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+            #s_t1 = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos,ob.track, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+            s_t1 = np.hstack((ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
             
             #train with state_t, state_t+1, actions_t, actions_t+1, and reward
             if (train_indicator):
