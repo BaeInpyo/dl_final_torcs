@@ -46,9 +46,9 @@ class ActorNetwork(object):
 
             wf1 = tf.get_variable(name='wf1', shape=[state_size, HIDDEN1_UNIT])
             wf2 = tf.get_variable(name='wf2', shape=[HIDDEN1_UNIT, HIDDEN2_UNIT])
-            wst = tf.get_variable(name='wst', shape=[HIDDEN2_UNIT, 1])
-            wac = tf.get_variable(name='wac', shape=[HIDDEN2_UNIT, 1])
-            wbr = tf.get_variable(name='wbr', shape=[HIDDEN2_UNIT, 1])
+            wst = tf.get_variable(name='wst', shape=[HIDDEN2_UNIT, 1], initializer=tf.truncated_normal_initializer(stddev=1e-4))
+            wac = tf.get_variable(name='wac', shape=[HIDDEN2_UNIT, 1], initializer=tf.truncated_normal_initializer(stddev=1e-4))
+            wbr = tf.get_variable(name='wbr', shape=[HIDDEN2_UNIT, 1], initializer=tf.truncated_normal_initializer(stddev=1e-4))
 
             bf1 = tf.constant(value=0.0, name='bf1', shape=[HIDDEN1_UNIT])
             bf2 = tf.constant(value=0.0, name='bf2', shape=[HIDDEN2_UNIT])

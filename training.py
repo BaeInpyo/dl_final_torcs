@@ -65,6 +65,7 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             early_stop = 1
         else: 
             early_stop = 0
+        #early_stop = 1
         print("Episode : " + str(i) + ' Early Stopping: ' + str(early_stop) +  ' Epsilon: ' + str(eps_early) +  ' RN: ' + str(random_number)  )
 
         #Initializing the first state
@@ -102,8 +103,11 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             s_t = s_t1
 
             #Displaying progress every 15 steps.
+            #if ( (np.mod(step,15)==0) ):        
+#            print("Episode", i, "Step", step_eps,"Epsilon", epsilon , "Action", a_t, "Reward", r_t )
             if ( (np.mod(step,15)==0) ):        
-                print("Episode", i, "Step", step_eps,"Epsilon", epsilon , "Action", a_t, "Reward", r_t )
+                print("Episode {:d} Step {:d} Epsilon {:.4f} ".format(i, int(step_eps), epsilon), end='')
+                print("Action {0} Reward {1}".format(a_t, r_t))
 
             step += 1
             step_eps += 1

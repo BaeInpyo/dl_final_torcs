@@ -96,7 +96,7 @@ class DriverAgent:
     def action(self,state):
         # return an action by state.
         action = np.zeros([self.action_dim])
-        action_pre = self.actor.predict(state)
+        action_pre = self.actor.predict(state.reshape([1, state.shape[0]]))
         
         # ACTION: without noise 
         action[0] = action_pre[0][0]
