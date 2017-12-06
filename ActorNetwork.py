@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 HIDDEN1_UNIT = 300
-HIDDEN2_UNIT = 600
+HIDDEN2_UNIT = 400
 
 class ActorNetwork(object):
     def __init__(self, sess, state_size, action_size, BATCH_SIZE, TAU, LEARNING_RATE):
@@ -20,6 +20,10 @@ class ActorNetwork(object):
         self.action_gradient = tf.placeholder(tf.float32,[None, action_size])
         self.params_grad = tf.gradients(
                 self.output, self.weights, -self.action_gradient)
+        for i, grad in enumerate(self.params_grad):
+            if grad is not None:
+                self.params_grad[i] = tf.clip_by_value(grad, -2.0, 2.0)
+
         grads = zip(self.params_grad, self.weights)
         self.optimize = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(grads)
         self.sess.run(tf.global_variables_initializer())
