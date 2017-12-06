@@ -21,6 +21,8 @@ class CriticNetwork(object):
         self.output, self.action, self.state = self.create_critic_network('pred_critic', state_size, action_size)  
         self.target_output, self.target_action, self.target_state = self.create_critic_network('target_critic', state_size, action_size)  
         self.action_grads = tf.gradients(self.output, self.action)  #GRADIENTS for policy update
+        self.create_training_method()
+
         self.sess.run(tf.global_variables_initializer())
 
         self.copy_op = []
@@ -31,13 +33,18 @@ class CriticNetwork(object):
                 TAU*pred_var.value() + (1-TAU)*target_var.value()))
     
     def gradients(self, states, actions):
-	    return self.sess.run(self.action_grads, feed_dict={self.state: states, self.action: actions})[0]
+        return self.sess.run(self.action_grads, feed_dict={self.state: states, self.action: actions})[0]
     
     def target_train(self):
-	    self.sess.run(self.copy_op)
+        self.sess.run(self.copy_op)
 
     def train(self, state_and_action, y):
-        self.sess.run(self.optimize, feed_dict={self.state: state_and_action[0], self.action: state_and_action[1], self.y: y})
+        return self.sess.run(self.optimize, feed_dict={self.state: state_and_action[0], self.action: state_and_action[1], self.y: y})
+
+    def create_training_method(self):
+        self.y = tf.placeholder(tf.float32, shape=[None, self.action_size])
+        losses = tf.reduce_mean(tf.square(self.y - self.output))
+        self.optimize = tf.train.AdamOptimizer(self.LEARNING_RATE).minimize(losses)
 
     def create_critic_network(self, name, state_size, action_dim):
         with tf.variable_scope(name):
@@ -45,8 +52,6 @@ class CriticNetwork(object):
             input_state = tf.placeholder(tf.float32, shape=[None, state_size])
             ## will come from action network
             input_action = tf.placeholder(tf.float32, shape=[None, action_dim])
-            ## will come from agent
-            self.y = tf.placeholder(tf.float32, shape=[None, action_dim])
 
             wf1 = tf.get_variable(name='wf1', shape=[state_size, HIDDEN1_UNIT])
             wf2_s = tf.get_variable(name='wf2_s', shape=[HIDDEN1_UNIT, HIDDEN2_UNIT])
@@ -66,8 +71,6 @@ class CriticNetwork(object):
             fc2_sum = tf.add(fc2_s, fc2_a)
             fc2 = tf.nn.relu(tf.add(tf.matmul(fc2_sum, wf2), bf2))
             logits = tf.add(tf.matmul(fc2, wlogits), blogits)
-            losses = tf.reduce_mean(tf.square(self.y - logits))
-            self.optimize = tf.train.AdamOptimizer(self.LEARNING_RATE).minimize(losses)
 
             return logits, input_action, input_state
 

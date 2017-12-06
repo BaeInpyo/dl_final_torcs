@@ -42,6 +42,9 @@ class DriverAgent:
         # Replay Memory
         self.memory = ReplayMemory(MEMORY_SIZE)
 
+        # Loss value
+        self.loss = 0
+
         # loading networks. modify as you want 
         self.saver = tf.train.Saver()
         checkpoint = tf.train.get_checkpoint_state(ckp_dir + '/' + ckp_name)
@@ -66,17 +69,17 @@ class DriverAgent:
         y_t = np.asarray([e[1] for e in batch])
 
         # Get target Q value of the critic network
-        target_Q = self.critic.target_predict(new_states, self.actor.target_predict(new_states))
+        target_Q = self.critic.target_predict([new_states, self.actor.target_predict(new_states)])
 
         # Calculate answer(???) < I cannot rememeber name
         for i in range(len(batch)):
-            if dones[k]:
+            if dones[i]:
                 y_t[i] = rewards[i]
             else:
                 y_t[i] = rewards[i] + GAMMA*target_Q[i]
 
         # Calculate loss value and gradient for each network, and train both
-        loss += self.critic.train([states, actions], y_t)
+        self.critic.train([states, actions], y_t)
         a_for_grad = self.actor.predict(states)
         grads = self.critic.gradients(states, a_for_grad)
         self.actor.train(states, grads)
