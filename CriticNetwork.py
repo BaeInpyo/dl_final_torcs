@@ -36,6 +36,9 @@ class CriticNetwork(object):
     def target_train(self):
 	    self.sess.run(self.copy_op)
 
+    def train(self, state_and_action, y):
+        self.sess.run(self.optimize, feed_dict={self.state: state_and_action[0], self.action: state_and_action[1], self.y: y})
+
     def create_critic_network(self, name, state_size, action_dim):
         with tf.variable_scope(name):
             ## will come from agent
@@ -66,4 +69,11 @@ class CriticNetwork(object):
             losses = tf.reduce_mean(tf.square(self.y - logits))
             self.optimize = tf.train.AdamOptimizer(self.LEARNING_RATE).minimize(losses)
 
-            return logits, input_action, input_state 
+            return logits, input_action, input_state
+
+ 
+    def predict(self, state_and_action):
+        return self.sess.run(self.output, feed_dict={self.state: state_and_action[0], self.action: state_and_action[1]})
+
+    def target_predict(self, state_and_action):
+        return self.sess.run(self.target_output, feed_dict={self.target_state: state_and_action[0], self.target_action: state_and_action[1] })
