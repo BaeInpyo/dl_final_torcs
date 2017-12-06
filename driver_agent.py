@@ -58,15 +58,15 @@ class DriverAgent:
 
         # Get batch from the replay memory
         batch = self.memory.getBatch(BATCH_SIZE)
-        states = np.asarray([e[0] for e in batch])
-        actions = np.asarray([e[1] for e in batch])
-        rewards = np.asarray([e[2] for e in batch])
-        new_states = np.asarray([e[3] for e in batch])
+        states = np.asarray([e[0] for e in batch], dtype=np.float32)
+        actions = np.asarray([e[1] for e in batch], dtype=np.float32)
+        rewards = np.asarray([e[2] for e in batch], dtype=np.float32)
+        new_states = np.asarray([e[3] for e in batch], dtype=np.float32)
         dones = np.asarray([e[4] for e in batch])
-        y_t = [0]*len(batch)
+        y_t = np.asarray([e[1] for e in batch])
 
         # Get target Q value of the critic network
-        target_Q = self.critic.target_predict([new_states, self.actor.target_predict(new_states)])
+        target_Q = self.critic.target_predict(new_states, self.actor.target_predict(new_states))
 
         # Calculate answer(???) < I cannot rememeber name
         for i in range(len(batch)):
@@ -93,7 +93,7 @@ class DriverAgent:
     def action(self,state):
         # return an action by state.
         action = np.zeros([self.action_dim])
-        action_pre = actor.predict(state)
+        action_pre = self.actor.predict(state)
         
         # ACTION: without noise 
         action[0] = action_pre[0][0]
@@ -107,15 +107,12 @@ class DriverAgent:
         action = np.zeros([self.action_dim])
         noise = np.zeros([self.action_dim])
 
-        action_pre = actor.predict(state)
+        action_pre = self.actor.predict(state.reshape([1, state.shape[0]]))
         
         # NOISE: eps * (theta * (mu - x) + sigma * rand)
-        noise[0] = max(epsilon, MIN_EPSILON) * \
-                0.6*(0.0-action_pre[0][0]) + 0.30*np.random.randn(1) 
-        noise[1] = max(epsilon, MIN_EPSILON) * \
-                1.0*(0.5-action_pre[0][1]) + 0.10*np.random.randn(1) 
-        noise[2] = max(epsilon, MIN_EPSILON) * \
-                1.0*(-0.1-action_pre[0][2]) + 0.05*np.random.randn(1) 
+        noise[0] = epsilon * 0.6*(0.0-action_pre[0][0]) + 0.30*np.random.randn(1) 
+        noise[1] = epsilon * 1.0*(0.5-action_pre[0][1]) + 0.10*np.random.randn(1) 
+        noise[2] = epsilon * 1.0*(-0.1-action_pre[0][2]) + 0.05*np.random.randn(1) 
 
         # ACTION: with noise 
         action[0] = action_pre[0][0] + noise[0]

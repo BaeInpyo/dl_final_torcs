@@ -10,9 +10,10 @@ class ReplayMemory(object):
     def getBatch(self, batch_size):
         # Randomly sample batch_size examples
         if self.num_experiences < batch_size:
-            return random.sample(self.buffer, self.num_experiences)
+            return random.sample(list(self.buffer), self.num_experiences)
         else:
-            return random.sample(self.buffer, batch_size)
+            return random.sample(list(self.buffer), batch_size)
+        #return random.sample(self.buffer, batch_size)
 
     def size(self):
         return self.memory_size
