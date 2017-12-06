@@ -113,14 +113,14 @@ class DriverAgent:
         action_pre = self.actor.predict(state.reshape([1, state.shape[0]]))
         
         # NOISE: eps * (theta * (mu - x) + sigma * rand)
-        noise[0] = epsilon * (0.6*(0.0-action_pre[0][0]) + 0.30*np.random.randn(1))
+        noise[0] = epsilon * (0.6*(0.0-action_pre[0][0]) + 0.80*np.random.randn(1))
         noise[1] = epsilon * (1.0*(0.5-action_pre[0][1]) + 0.10*np.random.randn(1))
         noise[2] = epsilon * (1.0*(-0.1-action_pre[0][2]) + 0.05*np.random.randn(1))
 
         # ACTION: with noise 
-        action[0] = action_pre[0][0] + noise[0]
-        action[1] = action_pre[0][1] + noise[1]
-        action[2] = action_pre[0][2] + noise[2]
+        action[0] = np.clip(action_pre[0][0] + noise[0], -1, 1)
+        action[1] = np.clip(action_pre[0][1] + noise[1], 0, 1)
+        action[2] = np.clip(action_pre[0][2] + noise[2], 0, 1)
 
         #action[0] = np.random.uniform(-1, 1)
         #action[1] = np.random.uniform(0, 1)
