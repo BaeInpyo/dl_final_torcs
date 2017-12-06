@@ -16,10 +16,11 @@ class CriticNetwork(object):
         self.TAU = TAU
         self.LEARNING_RATE = LEARNING_RATE
         self.action_size = action_size
+        self.L2 = 0.0001
 
         #Now create the model
-        self.output, self.action, self.state = self.create_critic_network('pred_critic', state_size, action_size)  
-        self.target_output, self.target_action, self.target_state = self.create_critic_network('target_critic', state_size, action_size)  
+        self.output, self.action, self.state, self.vars = self.create_critic_network('pred_critic', state_size, action_size)  
+        self.target_output, self.target_action, self.target_state, _ = self.create_critic_network('target_critic', state_size, action_size)  
         self.action_grads = tf.gradients(self.output, self.action)  #GRADIENTS for policy update
         self.create_training_method()
 
@@ -43,7 +44,8 @@ class CriticNetwork(object):
 
     def create_training_method(self):
         self.y = tf.placeholder(tf.float32, shape=[None, self.action_size])
-        losses = tf.reduce_mean(tf.square(self.y - self.output))
+        weight_decay = tf.add_n([self.L2 * tf.nn.l2_loss(var) for var in self.vars])
+        losses = tf.reduce_mean(tf.square(self.y - self.output)) + weight_decay
         self.optimize = tf.train.AdamOptimizer(self.LEARNING_RATE).minimize(losses)
 
     def create_critic_network(self, name, state_size, action_dim):
@@ -84,7 +86,7 @@ class CriticNetwork(object):
             fc2 = tf.nn.relu(tf.matmul(fc1, wf2_s) + tf.matmul(input_action, wf2_a) + b2)
             logits = tf.identity(tf.matmul(fc2, wf3) + b3)    
             
-            return logits, input_action, input_state
+            return logits, input_action, input_state, [wf1, wf2_s, wf2_a, wf3]
 
  
     def predict(self, state_and_action):
