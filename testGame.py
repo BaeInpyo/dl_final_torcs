@@ -21,7 +21,7 @@ print( port )
 def playGame(port=port): 
 
     action_dim = 3  #Steering/Acceleration/Brake
-    state_dim = 37  #of sensors input
+    state_dim = 29 #of sensors input
     env_name = 'Torcs_Env'
     agent = DriverAgent(env_name, state_dim, action_dim)
 
@@ -44,7 +44,8 @@ def playGame(port=port):
     early_stop = 0
 
     #Initializing the first state
-    s_t = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos, ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+    #s_t = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos, ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+    s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
     print(len(s_t))
     #Counting the total reward and total steps in the current episode
     total_reward = 0.
@@ -56,7 +57,8 @@ def playGame(port=port):
             
         ob, r_t, done, info = env.step(a_t,early_stop)
         #ob, r_t, done, info = env.step(a_t[0])
-        s_t1 = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos, ob.track, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+        #s_t1 = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos, ob.track, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+        s_t1 = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
         
         #Cheking for nan rewards
         if ( math.isnan( r_t )):

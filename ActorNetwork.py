@@ -14,37 +14,35 @@ class ActorNetwork(object):
 
         #Now create the model
         self.output, self.weights, self.input = \
-                self.create_actor_network('pred', state_size, action_size)
-        self.target_output, _, self.target_input = \
-                self.create_actor_network('target', state_size, action_size)
+                self.create_actor_network('pred', state_size)
+        self.target_input, self.target_output, self.target_update, self.target_net = \
+                self.create_target_network(state_size, self.weights)
+        #self.target_output, _, self.target_input = \
+        #        self.create_actor_network('target', state_size)
+
+        # Gradient
         self.action_gradient = tf.placeholder(tf.float32,[None, action_size])
         self.params_grad = tf.gradients(
                 self.output, self.weights, -self.action_gradient)
-        for i, grad in enumerate(self.params_grad):
-            if grad is not None:
-                self.params_grad[i] = tf.clip_by_value(grad, -2.0, 2.0)
-
         grads = zip(self.params_grad, self.weights)
+
+        # Optimizer
         self.optimize = tf.train.AdamOptimizer(LEARNING_RATE).apply_gradients(grads)
+
+        # Initialize variable
         self.sess.run(tf.global_variables_initializer())
 
-        self.copy_op = []
-        self.pred_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='pred')
-        self.target_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target')
-        for pred_var, target_var in zip(self.pred_vars, self.target_vars):
-            self.copy_op.append(target_var.assign(
-                TAU*pred_var.value() + (1-TAU)*target_var.value()))
+        #self.copy_op = []
+        #self.pred_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='pred')
+        #self.target_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target')
+        #for pred_var, target_var in zip(self.pred_vars, self.target_vars):
+        #    self.copy_op.append(target_var.assign(
+        #        TAU*pred_var.value() + (1-TAU)*target_var.value()))
 
-    def train(self, input_state, action_grads):
-        self.sess.run(self.optimize, feed_dict={
-            self.input: input_state,
-            self.action_gradient: action_grads
-        })
+        # Set target weight
+        self.target_train()
 
-    def target_train(self):
-        self.sess.run(self.copy_op)
-
-    def create_actor_network(self, name, state_size, action_dim):
+    def create_actor_network(self, name, state_size):
         with tf.variable_scope(name):
             input_state = tf.placeholder(tf.float32, shape=[None, state_size])
 
@@ -94,9 +92,35 @@ class ActorNetwork(object):
             
             return logits, params, input_state
 
+    def create_target_network(self, state_size, net):
+        input_state = tf.placeholder(tf.float32, shape=[None, state_size])
+        ema = tf.train.ExponentialMovingAverage(decay=1-self.TAU)
+        target_update = ema.apply(net)
+        target_net = [ema.average(x) for x in net]
+
+        fc1 = tf.nn.relu(tf.matmul(input_state, target_net[0]) + target_net[1])
+        fc2 = tf.nn.relu(tf.matmul(fc1, target_net[2]) + target_net[3])
+
+        steer = tf.tanh(tf.matmul(fc2, target_net[4]) + target_net[5])
+        accel = tf.sigmoid(tf.matmul(fc2, target_net[6]) + target_net[7])
+        brake = tf.sigmoid(tf.matmul(fc2, target_net[8]) + target_net[9])
+
+        output_action = tf.concat([steer, accel, brake], 1)
+        return input_state, output_action, target_update, target_net
 
     def predict(self, input_state):
         return self.sess.run(self.output, feed_dict={self.input: input_state})
 
     def target_predict(self, input_state):
         return self.sess.run(self.target_output, feed_dict={self.target_input: input_state})
+
+    def train(self, input_state, action_grads):
+        self.sess.run(self.optimize, feed_dict={
+            self.input: input_state,
+            self.action_gradient: action_grads
+        })
+
+    def target_train(self):
+        self.sess.run(self.target_update)
+        #self.sess.run(self.copy_op)
+

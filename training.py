@@ -69,7 +69,8 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
         print("Episode : " + str(i) + ' Early Stopping: ' + str(early_stop) +  ' Epsilon: ' + str(eps_early) +  ' RN: ' + str(random_number)  )
 
         #Initializing the first state
-        s_t = np.hstack((ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+        #s_t = np.hstack((ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+        s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
         print(len(s_t))
         #Counting the total reward and total steps in the current episode
         total_reward = 0.
@@ -88,7 +89,7 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             ob, r_t, done, info = env.step(a_t,early_stop)
             #ob, r_t, done, info = env.step(a_t[0])
             #s_t1 = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos,ob.track, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
-            s_t1 = np.hstack((ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
+            s_t1 = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
             
             #train with state_t, state_t+1, actions_t, actions_t+1, and reward
             if (train_indicator):
@@ -117,10 +118,10 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
                 
         #Saving the best model.
         if total_reward >= best_reward :
-            if (train_indicator==1):
-                print("Now we save model with reward " + str( total_reward) + " previous best reward was " + str(best_reward))
-                best_reward = total_reward
-                agent.saveNetwork()       
+            #if (train_indicator==1):
+            print("Now we save model with reward " + str( total_reward) + " previous best reward was " + str(best_reward))
+            best_reward = total_reward
+            agent.saveNetwork(i)       
                 
         print("TOTAL REWARD @ " + str(i) +"-th Episode  : Reward " + str(total_reward))
         print("Total Step: " + str(step))
