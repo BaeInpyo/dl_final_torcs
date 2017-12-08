@@ -40,11 +40,12 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
     
     step = 0
     best_reward = -100000
+    best_lap_time = 100000
 
     print("TORCS Experiment Start.")
     for i in range(episode_count):
         ##Occasional Testing
-        if (( np.mod(i, 10) == 0 ) and (i>20)):
+        if (( np.mod(i, 10) == 0 ) and (i>10)):
             train_indicator= 0
         else:
             train_indicator=is_training
@@ -60,7 +61,7 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
         # As one learns to drive the constraints become stricter
         
         random_number = random.random()
-        eps_early = max(epsilon,0.10)
+        eps_early = max(epsilon,0.1)
         if (random_number < (1.0-eps_early)) and (train_indicator == 1):
             early_stop = 1
         else: 
@@ -74,13 +75,18 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
         #Counting the total reward and total steps in the current episode
         total_reward = 0.
         step_eps = 0.
+
+        total_lap_time = 0.
+        lap_time = 0.
+        prev_lap_time = 1.
+        finish_lap = False
         
         for j in range(max_steps):
             
             #Take noisy actions during training
             if (train_indicator):
                 epsilon -= 1.0 / EXPLORE
-                epsilon = max(epsilon, 0.1)
+                epsilon = max(epsilon, 0.05)
                 a_t = agent.noise_action(s_t,epsilon)
             else:
                 a_t = agent.action(s_t)
@@ -99,6 +105,19 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
                 r_t = 0.0
                 for bad_r in range( 50 ):
                     print( 'Bad Reward Found' )
+            
+            if prev_lap_time >= 0:
+                if lap_time != prev_lap_time:
+                    prev_lap_time = lap_time
+                else:
+                    finish_lap = True
+
+            lap_time = ob.curLapTime
+            if (lap_time < 0.2) or done or finish_lap:
+                total_lap_time += prev_lap_time
+                if finish_lap:
+                    prev_lap_time = -1
+                finish_lap = False
 
             total_reward += r_t
             s_t = s_t1
@@ -107,7 +126,7 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             #if ( (np.mod(step,15)==0) ):        
 #            print("Episode", i, "Step", step_eps,"Epsilon", epsilon , "Action", a_t, "Reward", r_t )
             if ( (np.mod(step,15)==0) ):        
-                print("Episode {:d} Step {:d} Epsilon {:.4f} ".format(i, int(step_eps), epsilon), end='')
+                print("[{:.2f}s] Episode {:d} Step {:d} Epsilon {:.4f} ".format(total_lap_time, i, int(step_eps), epsilon), end='')
                 print("Action {0} Reward {1}".format(a_t, r_t))
 
             step += 1
@@ -118,10 +137,11 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
                 break
                 
         #Saving the best model.
-        if total_reward >= best_reward and i > 0 :
+        if total_lap_time < best_lap_time and total_lap_time > 175 and i > 0 :
             #if (train_indicator==1):
             print("Now we save model with reward " + str( total_reward) + " previous best reward was " + str(best_reward))
             best_reward = total_reward
+            best_lap_time = total_lap_time
             agent.saveNetwork(i)       
                 
         print("TOTAL REWARD @ " + str(i) +"-th Episode  : Reward " + str(total_reward))

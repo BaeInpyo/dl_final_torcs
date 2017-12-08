@@ -61,8 +61,14 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
         #Counting the total reward and total steps in the current episode
         total_reward = 0.
         step_eps = 0.
+
+        total_lap_time = 0.
+        lap_time = 0.
+        prev_lap_time = 1.
+        finish_lap = False
         
         for j in range(max_steps):
+            #print(np.hstack((ob.angle, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ)))
             
             #Take noisy actions during training
             a_t = agent.action(s_t)
@@ -77,12 +83,26 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
                 for bad_r in range( 50 ):
                     print( 'Bad Reward Found' )
 
+            if prev_lap_time >= 0:
+                if lap_time != prev_lap_time:
+                    prev_lap_time = lap_time
+                else:
+                    finish_lap = True
+
+            lap_time = ob.curLapTime
+            if (lap_time < 0.2) or done or finish_lap:
+                total_lap_time += prev_lap_time
+                if finish_lap:
+                    prev_lap_time = -1
+                finish_lap = False
+
             total_reward += r_t
             s_t = s_t1
 
             #Displaying progress every 15 steps.
             if ( (np.mod(step,15)==0) ):        
-                print("Episode", i, "Step", step_eps,"Epsilon", epsilon , "Action", a_t, "Reward", r_t )
+                print("[{:.2f}s] Episode {:d} Step {:d} Epsilon {:.4f} ".format(total_lap_time, i, int(step_eps), epsilon), end='')
+                print("Action {0} Reward {1}".format(a_t, r_t))
 
             step += 1
             step_eps += 1
