@@ -65,7 +65,6 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             early_stop = 1
         else: 
             early_stop = 0
-        #early_stop = 1
         print("Episode : " + str(i) + ' Early Stopping: ' + str(early_stop) +  ' Epsilon: ' + str(eps_early) +  ' RN: ' + str(random_number)  )
 
         #Initializing the first state
@@ -92,7 +91,7 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             s_t1 = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
             
             #train with state_t, state_t+1, actions_t, actions_t+1, and reward
-            if (train_indicator):
+            if (train_indicator) and i > 0:
                 agent.train(s_t,a_t,r_t,s_t1,done)
                 
             #Cheking for nan rewards
@@ -115,9 +114,11 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             step_eps += 1
             if done:
                 break
+            if i== 0:
+                break
                 
         #Saving the best model.
-        if total_reward >= best_reward :
+        if total_reward >= best_reward and i > 0 :
             #if (train_indicator==1):
             print("Now we save model with reward " + str( total_reward) + " previous best reward was " + str(best_reward))
             best_reward = total_reward
