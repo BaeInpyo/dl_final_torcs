@@ -165,7 +165,12 @@ class TorcsEnv:
             episode_terminate = True
             client.R.d['meta'] = True
             print('Terminating because Turned Back')
-
+        
+        if obs['distRaced'] - obs_pre['distRaced'] < 0.001: # Episode is terminated if the race is done
+            if ( (progress > self.termination_limit_progress)):
+                episode_terminate = True
+                client.R.d['meta'] = True
+                print('Terminating because the race is finished')
 
         if client.R.d['meta'] is True: # Send a reset signal
             self.initial_run = False
