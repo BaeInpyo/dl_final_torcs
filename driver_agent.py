@@ -19,8 +19,8 @@ GAMMA       = 0.99
 TAU         = 0.001
 LRA         = 0.0001
 LRC         = 0.001
-ckp_dir     = 'torcs_baseline'
-ckp_name    = 'trained'
+ckp_dir     = 'Submission'
+ckp_name    = 'best'
 OU = OU()
 
 class DriverAgent:
@@ -143,8 +143,8 @@ class DriverAgent:
         #noise[1] = epsilon * (1.0*(0.2+action_pre[0][1]) + 0.10*np.random.randn(1))
         #noise[2] = epsilon * (1.0*(-0.1-action_pre[0][2]) + 0.05*np.random.randn(1))
 
-        noise[0] = epsilon * OU.function(action_pre[0][0], 0.0, 0.60, 0.80) 
-        noise[1] = epsilon * OU.function(action_pre[0][1], 0.5, 1.00, 0.10) 
+        noise[0] = epsilon * OU.function(action_pre[0][0], 0.0, 0.60, 0.60) 
+        noise[1] = epsilon * OU.function(action_pre[0][1], 0.7, 1.00, 0.10) 
         noise[2] = epsilon * OU.function(action_pre[0][2], -0.1, 1.00, 0.05) 
         #print(noise)
 

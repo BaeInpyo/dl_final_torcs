@@ -132,12 +132,13 @@ class TorcsEnv:
         # Reward setting Here #######################################
         # direction-dependent positive reward
         track = np.array(obs['track'])
+        angle = np.array(obs['angle'])
         trackPos = np.array(obs['trackPos'])
         sp = np.array(obs['speedX'])
         damage = np.array(obs['damage'])
         rpm = np.array(obs['rpm'])
 
-        progress = reward_function.calcReward(obs);
+        progress = reward_function.calcReward(self.get_obs());
         reward = progress
 
         # collision detection
@@ -146,30 +147,35 @@ class TorcsEnv:
 
         # Termination judgement #########################
         episode_terminate = False
+        error = False
         #early_stop = True
         if ( (abs(track.any()) > 1 or abs(trackPos) > 1) and early_stop ):  # Episode is terminated if the car is out of track
             reward = -2
             episode_terminate = True
             client.R.d['meta'] = True
+            error = True
             print('Terminating because Out of Track')
 
         if self.terminal_judge_start < self.time_step: # Episode terminates if the progress of agent is small
-            if ( (progress < self.termination_limit_progress) and early_stop ):
+            if ( (sp*np.cos(angle) < self.termination_limit_progress) and early_stop ):
                 print("No progress")
                 episode_terminate = True
                 client.R.d['meta'] = True
+                error = True
                 print('Terminating because Small Progress')
 
         if np.cos(obs['angle']) < 0: # Episode is terminated if the agent runs backward
             reward = -2
             episode_terminate = True
             client.R.d['meta'] = True
+            error = True
             print('Terminating because Turned Back')
         
         if obs['distRaced'] - obs_pre['distRaced'] < 0.001: # Episode is terminated if the race is done
             if ( (progress > self.termination_limit_progress)):
                 episode_terminate = True
                 client.R.d['meta'] = True
+                error = False 
                 print('Terminating because the race is finished')
 
         if client.R.d['meta'] is True: # Send a reset signal
@@ -178,7 +184,7 @@ class TorcsEnv:
 
         self.time_step += 1
 
-        return self.get_obs(), reward, client.R.d['meta'], {}
+        return self.get_obs(), reward, episode_terminate, {'error':error}
 
     def reset(self, relaunch=False):
         #print("Reset")

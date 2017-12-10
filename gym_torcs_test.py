@@ -137,7 +137,7 @@ class TorcsEnv:
         damage = np.array(obs['damage'])
         rpm = np.array(obs['rpm'])
 
-        progress = reward_function.calcReward(obs);
+        progress = reward_function.calcReward(self.get_obs());
         reward = progress
 
         # collision detection

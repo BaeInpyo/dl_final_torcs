@@ -2,14 +2,16 @@ import numpy as np
 
 def calcReward(obs):
     ## write your own reward
-    track = np.array(obs['track'])
-    trackPos = np.array(obs['trackPos'])
-    sp = np.array(obs['speedX'])
-    damage = np.array(obs['damage'])
-    rpm = np.array(obs['rpm'])
+    #track = obs.track
+    trackPos = obs.trackPos
+    sp = obs.speedX
+    angle = obs.angle
 
-    progress = sp*np.cos(obs['angle']) - np.abs(sp*np.sin(obs['angle'])) - \
-            sp*np.abs(obs['trackPos'])
+    if np.abs(trackPos) > 0.8:
+        progress = sp*np.cos(angle) - np.abs(sp*np.sin(angle)) - \
+                sp*(np.abs(trackPos))
+    else:
+        progress = sp*np.cos(angle) - np.abs(sp*np.sin(angle))
     reward = progress
 
     return reward
