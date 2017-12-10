@@ -86,7 +86,7 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             #Take noisy actions during training
             if (train_indicator):
                 epsilon -= 1.0 / EXPLORE
-                epsilon = max(epsilon, 0.05)
+                epsilon = max(epsilon, 0.1)
                 a_t = agent.noise_action(s_t,epsilon)
             else:
                 a_t = agent.action(s_t)
@@ -137,9 +137,11 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
                 break
                 
         #Saving the best model.
-        if total_lap_time < best_lap_time and total_lap_time > 175 and i > 0 :
+        if total_lap_time < best_lap_time and prev_lap_time < 0 and \
+                total_lap_time > 170 and not info['error'] and i > 0 :
+        #if total_reward >= best_reward and i > 0:
             #if (train_indicator==1):
-            print("Now we save model with reward " + str( total_reward) + " previous best reward was " + str(best_reward))
+            print("Now we save model with reward " + str(total_lap_time) + " previous best reward was " + str(best_lap_time))
             best_reward = total_reward
             best_lap_time = total_lap_time
             agent.saveNetwork(i)       
