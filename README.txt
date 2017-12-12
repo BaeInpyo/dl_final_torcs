@@ -1,3 +1,9 @@
+0. Environment
+tensorflow      --version 1.3.0
+python          --version 3.4
+linux           --version 4.9.16
+torcs simulator --provided
+
 1. Necessary modification
 We modified the number of states (training.py / testGame.py)
 We modified an observation to be normalized (gym_*.py)
