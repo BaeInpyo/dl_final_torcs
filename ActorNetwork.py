@@ -17,8 +17,6 @@ class ActorNetwork(object):
                 self.create_actor_network('pred', state_size)
         self.target_input, self.target_output, self.target_update, self.target_net = \
                 self.create_target_network(state_size, self.weights)
-        #self.target_output, _, self.target_input = \
-        #        self.create_actor_network('target', state_size)
 
         # Gradient
         self.action_gradient = tf.placeholder(tf.float32,[None, action_size])
@@ -32,31 +30,12 @@ class ActorNetwork(object):
         # Initialize variable
         self.sess.run(tf.global_variables_initializer())
 
-        #self.copy_op = []
-        #self.pred_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='pred')
-        #self.target_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='target')
-        #for pred_var, target_var in zip(self.pred_vars, self.target_vars):
-        #    self.copy_op.append(target_var.assign(
-        #        TAU*pred_var.value() + (1-TAU)*target_var.value()))
-
         # Set target weight
         self.target_train()
 
     def create_actor_network(self, name, state_size):
         with tf.variable_scope(name):
             input_state = tf.placeholder(tf.float32, shape=[None, state_size])
-
-            #wf1 = tf.get_variable(name='wf1', shape=[state_size, HIDDEN1_UNIT])
-            #wf2 = tf.get_variable(name='wf2', shape=[HIDDEN1_UNIT, HIDDEN2_UNIT])
-            #wst = tf.get_variable(name='wst', shape=[HIDDEN2_UNIT, 1], initializer=tf.truncated_normal_initializer(stddev=1e-4))
-            #wac = tf.get_variable(name='wac', shape=[HIDDEN2_UNIT, 1], initializer=tf.truncated_normal_initializer(stddev=1e-4))
-            #wbr = tf.get_variable(name='wbr', shape=[HIDDEN2_UNIT, 1], initializer=tf.truncated_normal_initializer(stddev=1e-4))
-
-            #bf1 = tf.constant(value=0.0, name='bf1', shape=[HIDDEN1_UNIT])
-            #bf2 = tf.constant(value=0.0, name='bf2', shape=[HIDDEN2_UNIT])
-            #bst = tf.constant(value=0.0, name='bst', shape=[1])
-            #bac = tf.constant(value=0.0, name='bac', shape=[1])
-            #bbr = tf.constant(value=0.0, name='bbr', shape=[1])
 
             wf1 = tf.Variable(tf.random_uniform(
                 [state_size, HIDDEN1_UNIT],
@@ -88,7 +67,6 @@ class ActorNetwork(object):
             logits = tf.concat([steering, accel, brake], 1)
             
             params = [wf1, bf1, wf2, bf2, wst, bst, wac, bac, wbr, bbr]
-            #params = [wf1, wf2, wst, wac, wbr]
             
             return logits, params, input_state
 
@@ -122,5 +100,3 @@ class ActorNetwork(object):
 
     def target_train(self):
         self.sess.run(self.target_update)
-        #self.sess.run(self.copy_op)
-

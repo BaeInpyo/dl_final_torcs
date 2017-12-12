@@ -40,7 +40,7 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
     
     step = 0
     best_reward = -100000
-    best_lap_time = 100000
+    best_lap_time = 182
 
     print("TORCS Experiment Start.")
     for i in range(episode_count):
@@ -69,7 +69,6 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
         print("Episode : " + str(i) + ' Early Stopping: ' + str(early_stop) +  ' Epsilon: ' + str(eps_early) +  ' RN: ' + str(random_number)  )
 
         #Initializing the first state
-        #s_t = np.hstack((ob.track, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
         s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
         print(len(s_t))
         #Counting the total reward and total steps in the current episode
@@ -92,8 +91,6 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
                 a_t = agent.action(s_t)
                 
             ob, r_t, done, info = env.step(a_t,early_stop)
-            #ob, r_t, done, info = env.step(a_t[0])
-            #s_t1 = np.hstack((ob.focus, ob.distFromStart, ob.distRaced, ob.racePos,ob.track, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm, ob.trackPos, ob.angle))
             s_t1 = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
             
             #train with state_t, state_t+1, actions_t, actions_t+1, and reward
@@ -123,8 +120,6 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
             s_t = s_t1
 
             #Displaying progress every 15 steps.
-            #if ( (np.mod(step,15)==0) ):        
-#            print("Episode", i, "Step", step_eps,"Epsilon", epsilon , "Action", a_t, "Reward", r_t )
             if ( (np.mod(step,15)==0) ):        
                 print("[{:.2f}s] Episode {:d} Step {:d} Epsilon {:.4f} ".format(total_lap_time, i, int(step_eps), epsilon), end='')
                 print("Action {0} Reward {1}".format(a_t, r_t))
@@ -139,8 +134,6 @@ def playGame(train_indicator=is_training, p=port):    #1 means Train, 0 means si
         #Saving the best model.
         if total_lap_time < best_lap_time and prev_lap_time < 0 and \
                 total_lap_time > 170 and not info['error'] and i > 0 :
-        #if total_reward >= best_reward and i > 0:
-            #if (train_indicator==1):
             print("Now we save model with reward " + str(total_lap_time) + " previous best reward was " + str(best_lap_time))
             best_reward = total_reward
             best_lap_time = total_lap_time
