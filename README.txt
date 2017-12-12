@@ -16,4 +16,4 @@ function.
 
 3. Result
 Our best total lap time is 178.86s and the best single lap time among three laps
-is 56.74s.
+is 56.54s.
